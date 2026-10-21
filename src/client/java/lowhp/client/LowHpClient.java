@@ -10,9 +10,9 @@ import net.minecraft.world.item.Items;
 public class LowHpClient implements ClientModInitializer {
 
     // 1.5 hearts = 3 HP
-    private static final float WARN_HP = 3.0f;
+    private static final float WARN_HP = 6.0f;
     // is se upar health jaaye to warning reset hogi
-    private static final float RESET_HP = 6.0f;
+    private static final float RESET_HP = 8.0f;
 
     private boolean warned = false;
 
