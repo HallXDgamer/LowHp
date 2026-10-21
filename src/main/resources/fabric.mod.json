@@ -2,10 +2,10 @@
 	"schemaVersion": 1,
 	"id": "template-mod",
 	"version": "${version}",
-	"name": "Template Mod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "LowHP Totem Alert",
+	"description": "Built for Nethpot 1v1s: a low-health alert so you never forget to offhand a totem!",
 	"authors": [
-		"Me!"
+		"HallXDgamer!"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
