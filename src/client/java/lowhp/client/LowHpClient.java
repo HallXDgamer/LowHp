@@ -16,9 +16,18 @@ public class LowHpClient implements ClientModInitializer {
     private static final float RESET_HP = 8.0f;
 
     private boolean warned = false;
+    private boolean enables = true;
+
+    private KeyMapping toglekey;
 
     @Override
     public void onInitializeClient() {
+        KeyMapping.Category category = KeyMapping.Categoy.register(
+            Identifier.fromNamespaceAndPath("lowhp", "main"))l;
+
+        togglekey = KeyMappingHelper.registerKeyMapping(
+            new KeyMapping("key.lowhp.toggle", InputConstants.KEY_~, category));
+            
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             LocalPlayer player = client.player;
             if (player == null) {
