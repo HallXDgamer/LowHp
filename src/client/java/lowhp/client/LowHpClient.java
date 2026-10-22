@@ -1,10 +1,14 @@
 package lowhp.client;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Items;
 
@@ -16,21 +20,34 @@ public class LowHpClient implements ClientModInitializer {
     private static final float RESET_HP = 8.0f;
 
     private boolean warned = false;
-    private boolean enables = true;
+    private boolean enabled = true;
 
-    private KeyMapping toglekey;
+    private KeyMapping toggleKey;
 
     @Override
     public void onInitializeClient() {
-        KeyMapping.Category category = KeyMapping.Categoy.register(
-            Identifier.fromNamespaceAndPath("lowhp", "main"))l;
+        KeyMapping.Category category = KeyMapping.Category.register(
+                Identifier.fromNamespaceAndPath("lowhp", "main"));
 
-        togglekey = KeyMappingHelper.registerKeyMapping(
-            new KeyMapping("key.lowhp.toggle", InputConstants.KEY_~, category));
-            
+        toggleKey = KeyMappingHelper.registerKeyMapping(
+                new KeyMapping("key.lowhp.toggle", InputConstants.KEY_~, category));
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             LocalPlayer player = client.player;
-            if (player == null) {
+
+            // ~ dabane par on/off
+            while (toggleKey.consumeClick()) {
+                enabled = !enabled;
+                warned = false;
+                if (player != null) {
+                    player.displayClientMessage(
+                            Component.literal("LowHP alert: " + (enabled ? "ON" : "OFF"))
+                                    .withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED),
+                            true);
+                }
+            }
+
+            if (player == null || !enabled) {
                 warned = false;
                 return;
             }
@@ -44,7 +61,7 @@ public class LowHpClient implements ClientModInitializer {
                 if (!warned) {
                     warned = true;
                     client.gui.setTimes(2, 25, 8);
-                    client.gui.setSubtitle(Component.literal("Switch Your Totem To OffHand!").withStyle(ChatFormatting.YELLOW));
+                    client.gui.setSubtitle(Component.literal("Offhand me switch kar!").withStyle(ChatFormatting.YELLOW));
                     client.gui.setTitle(Component.literal("TOTEM!").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
                 }
             } else if (hp > RESET_HP || totemInOffhand || !totemInInventory) {
