@@ -61,7 +61,7 @@ public class LowHpClient implements ClientModInitializer {
                 if (!warned) {
                     warned = true;
                     client.gui.setTimes(2, 25, 8);
-                    client.gui.setSubtitle(Component.literal("SWITCH TOTEM TO OFFHAND!").withStyle(ChatFormatting.YELLOW));
+                    client.gui.setSubtitle(Component.literal("Switch Totem to OffHand!").withStyle(ChatFormatting.YELLOW));
                     client.gui.setTitle(Component.literal("TOTEM!").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
                 }
             } else if (hp > RESET_HP || totemInOffhand || !totemInInventory) {
