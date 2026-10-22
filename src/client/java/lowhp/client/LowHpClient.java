@@ -30,7 +30,7 @@ public class LowHpClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath("lowhp", "main"));
 
         toggleKey = KeyMappingHelper.registerKeyMapping(
-                new KeyMapping("key.lowhp.toggle", InputConstants.KEY_GRAVE, category));
+                new KeyMapping("key.lowhp.toggle", 96, category));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             LocalPlayer player = client.player;
