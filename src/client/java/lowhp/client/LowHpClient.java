@@ -7,16 +7,16 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Items;
 
 public class LowHpClient implements ClientModInitializer {
 
-    // 3 hearts = 6 HP
     private static final float WARN_HP = 6.0f;
-    // is se upar health jaaye to warning reset hogi
     private static final float RESET_HP = 8.0f;
 
     private boolean warned = false;
@@ -35,7 +35,6 @@ public class LowHpClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             LocalPlayer player = client.player;
 
-            // ~ dabane par on/off
             while (toggleKey.consumeClick()) {
                 enabled = !enabled;
                 warned = false;
@@ -56,13 +55,11 @@ public class LowHpClient implements ClientModInitializer {
             boolean totemInOffhand = player.getOffhandItem().is(Items.TOTEM_OF_UNDYING);
             boolean totemInInventory = hasTotemInInventory(player);
 
-            // warning sirf tab jab totem hai par offhand me nahi
             if (hp > 0 && hp <= WARN_HP && totemInInventory && !totemInOffhand) {
                 if (!warned) {
                     warned = true;
-                    client.gui.setTimes(2, 25, 8);
-                    client.gui.setSubtitle(Component.literal("Switch Totem to OffHand!").withStyle(ChatFormatting.YELLOW));
-                    client.gui.setTitle(Component.literal("TOTEM!").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+                    client.getSoundManager().play(
+                            SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.5f, 1.0f));
                 }
             } else if (hp > RESET_HP || totemInOffhand || !totemInInventory) {
                 warned = false;
