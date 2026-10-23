@@ -17,9 +17,10 @@ import net.minecraft.world.item.Items;
 public class LowHpClient implements ClientModInitializer {
 
     private static final float WARN_HP = 6.0f;
-    private static final float RESET_HP = 8.0f;
+    // 20 ticks = 1 second between sounds
+    private static final int REPEAT_TICKS = 20;
 
-    private boolean warned = false;
+    private int cooldown = 0;
     private boolean enabled = true;
 
     private KeyMapping toggleKey;
@@ -37,7 +38,7 @@ public class LowHpClient implements ClientModInitializer {
 
             while (toggleKey.consumeClick()) {
                 enabled = !enabled;
-                warned = false;
+                cooldown = 0;
                 if (player != null) {
                     player.displayClientMessage(
                             Component.literal("LowHP alert: " + (enabled ? "ON" : "OFF"))
@@ -47,7 +48,7 @@ public class LowHpClient implements ClientModInitializer {
             }
 
             if (player == null || !enabled) {
-                warned = false;
+                cooldown = 0;
                 return;
             }
 
@@ -55,14 +56,17 @@ public class LowHpClient implements ClientModInitializer {
             boolean totemInOffhand = player.getOffhandItem().is(Items.TOTEM_OF_UNDYING);
             boolean totemInInventory = hasTotemInInventory(player);
 
-            if (hp > 0 && hp <= WARN_HP && totemInInventory && !totemInOffhand) {
-                if (!warned) {
-                    warned = true;
+            boolean shouldAlert = hp > 0 && hp <= WARN_HP && totemInInventory && !totemInOffhand;
+
+            if (shouldAlert) {
+                if (cooldown <= 0) {
                     client.getSoundManager().play(
                             SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.5f, 1.0f));
+                    cooldown = REPEAT_TICKS;
                 }
-            } else if (hp > RESET_HP || totemInOffhand || !totemInInventory) {
-                warned = false;
+                cooldown--;
+            } else {
+                cooldown = 0;
             }
         });
     }
