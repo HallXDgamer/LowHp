@@ -1,83 +1,55 @@
-package lowhp.client;
+package com.example.headflip.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.Items;
+import org.lwjgl.glfw.GLFW;
 
-public class LowHpClient implements ClientModInitializer {
+public class TemplateModClient implements ClientModInitializer {
+    private static KeyMapping flipKey;
 
-    private static final float WARN_HP = 6.0f;
-    // 20 ticks = 1 second between sounds
-    private static final int REPEAT_TICKS = 20;
+    // -1 = hamesha LEFT, +1 = hamesha RIGHT
+    private static final float DIRECTION = -1.0f;
+    // ek turn kitne degree ka hai
+    private static final float DEGREES = 180.0f;
+    // ek click mein kitne turns (2 = 180 phir 180)
+    private static final int TURNS_PER_CLICK = 2;
+    // ek 180 kitne ticks mein ho (1 tick = 0.05 sec). 2 = tez, 3 = thoda smooth
+    private static final int TICKS_PER_TURN = 2;
 
-    private int cooldown = 0;
-    private boolean enabled = true;
-
-    private KeyMapping toggleKey;
+    private static float remaining = 0.0f;
 
     @Override
     public void onInitializeClient() {
         KeyMapping.Category category = KeyMapping.Category.register(
-                Identifier.fromNamespaceAndPath("lowhp", "main"));
+            Identifier.fromNamespaceAndPath("headflip", "main")
+        );
 
-        toggleKey = KeyBindingHelper.registerKeyBinding(
-                new KeyMapping("key.lowhp.toggle", InputConstants.KEY_GRAVE, category));
+        flipKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+            "key.headflip.flip",
+            InputConstants.Type.KEYSYM,
+            GLFW.GLFW_KEY_R,
+            category
+        ));
 
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            LocalPlayer player = client.player;
-
-            while (toggleKey.consumeClick()) {
-                enabled = !enabled;
-                cooldown = 0;
-                if (player != null) {
-                    player.displayClientMessage(
-                            Component.literal("LowHP alert: " + (enabled ? "ON" : "OFF"))
-                                    .withStyle(enabled ? ChatFormatting.GREEN : ChatFormatting.RED),
-                            true);
-                }
+        ClientTickEvents.START_CLIENT_TICK.register(client -> {
+            while (flipKey.consumeClick()) {
+                remaining += DEGREES * TURNS_PER_CLICK;
             }
 
-            if (player == null || !enabled) {
-                cooldown = 0;
+            if (client.player == null) {
+                remaining = 0.0f;
                 return;
             }
 
-            float hp = player.getHealth();
-            boolean totemInOffhand = player.getOffhandItem().is(Items.TOTEM_OF_UNDYING);
-            boolean totemInInventory = hasTotemInInventory(player);
-
-            boolean shouldAlert = hp > 0 && hp <= WARN_HP && totemInInventory && !totemInOffhand;
-
-            if (shouldAlert) {
-                if (cooldown <= 0) {
-                    client.getSoundManager().play(
-                            SimpleSoundInstance.forUI(SoundEvents.EXPERIENCE_ORB_PICKUP, 0.5f, 1.0f));
-                    cooldown = REPEAT_TICKS;
-                }
-                cooldown--;
-            } else {
-                cooldown = 0;
+            if (remaining > 0.001f) {
+                float step = Math.min(DEGREES / TICKS_PER_TURN, remaining);
+                client.player.setYRot(client.player.getYRot() + DIRECTION * step);
+                remaining -= step;
             }
         });
-    }
-
-    private boolean hasTotemInInventory(LocalPlayer player) {
-        Inventory inv = player.getInventory();
-        for (int i = 0; i < inv.getContainerSize(); i++) {
-            if (inv.getItem(i).is(Items.TOTEM_OF_UNDYING)) {
-                return true;
-            }
-        }
-        return false;
     }
 }
